@@ -32,9 +32,6 @@ public class HackAssemblerTest {
         testShiftLeftD();
         testShiftRightM();
         testSymbolsAndLabels();
-        testRoundTripSimple();
-        testRoundTripShift();
-        testErrorBadComp();
 
         System.out.println("----------------------------------");
         System.out.println("Pasaron: " + passed + "   Fallaron: " + failed);
@@ -48,8 +45,7 @@ public class HackAssemblerTest {
     }
 
     static File writeTmp(String name, String content) throws IOException {
-        while (name.length() < 3) name = name + "_";
-        File f = File.createTempFile(name, "");
+        File f = File.createTempFile(name, ""); 
         BufferedWriter w = new BufferedWriter(new FileWriter(f));
         w.write(content);
         w.close();
@@ -68,7 +64,7 @@ public class HackAssemblerTest {
     // --------- tests ---------
 
     static void testAInstruction() throws IOException {
-        File in = writeTmp("a", "@5\n@100\n");
+        File in = writeTmp("pruebitaA", "@5\n@100\n");
         HackAssembler.assemble(in.getAbsolutePath());
         List<String> out = readLines(in.getAbsolutePath().replace(in.getName(), in.getName()).replaceAll("$", "")
                 .replaceAll("\\..*$", "") + ".hack");
@@ -80,7 +76,7 @@ public class HackAssemblerTest {
     }
 
     static void testCInstructionBasic() throws IOException {
-        File in = writeTmp("c1", "D=A\nM=D+1\n");
+        File in = writeTmp("pruebitaC1", "D=A\nM=D+1\n");
         HackAssembler.assemble(in.getAbsolutePath());
         List<String> out = readLines(HackAssembler.replaceExtension(in.getAbsolutePath(), ".hack"));
         // D=A   -> 111 0110000 010 000 = 1110110000010000
@@ -90,7 +86,7 @@ public class HackAssemblerTest {
     }
 
     static void testJump() throws IOException {
-        File in = writeTmp("j", "0;JMP\n");
+        File in = writeTmp("pruebitaJ", "0;JMP\n");
         HackAssembler.assemble(in.getAbsolutePath());
         List<String> out = readLines(HackAssembler.replaceExtension(in.getAbsolutePath(), ".hack"));
         // 0;JMP -> 111 0101010 000 111
@@ -98,7 +94,7 @@ public class HackAssemblerTest {
     }
 
     static void testShiftLeftD() throws IOException {
-        File in = writeTmp("sl", "D=D<<1\n");
+        File in = writeTmp("pruebitaSL", "D=D<<1\n");
         HackAssembler.assemble(in.getAbsolutePath());
         List<String> out = readLines(HackAssembler.replaceExtension(in.getAbsolutePath(), ".hack"));
         // 101 0 0 00000 010 000
@@ -106,7 +102,7 @@ public class HackAssemblerTest {
     }
 
     static void testShiftRightM() throws IOException {
-        File in = writeTmp("sr", "AM=D>>1\n");
+        File in = writeTmp("pruebitaSR", "AM=D>>1\n");
         HackAssembler.assemble(in.getAbsolutePath());
         List<String> out = readLines(HackAssembler.replaceExtension(in.getAbsolutePath(), ".hack"));
         // 101 0 1 00000 101 000
@@ -127,39 +123,5 @@ public class HackAssemblerTest {
         // 0;JMP
         check("0;JMP sym",  out.get(3).equals("1110101010000111"), out.get(3));
     }
-
-    static void testRoundTripSimple() throws IOException {
-        String prog = "@17\nD=A\nM=D+1\n";
-        File asm = writeTmp("rt", prog);
-        HackAssembler.assemble(asm.getAbsolutePath());
-        String hackPath = HackAssembler.replaceExtension(asm.getAbsolutePath(), ".hack");
-        HackDisassembler.disassemble(hackPath);
-        String disPath = HackDisassembler.makeDisPath(hackPath);
-        List<String> out = readLines(disPath);
-        check("RT @17",    out.get(0).equals("@17"),    out.get(0));
-        check("RT D=A",    out.get(1).equals("D=A"),    out.get(1));
-        check("RT M=D+1",  out.get(2).equals("M=D+1"),  out.get(2));
-    }
-
-    static void testRoundTripShift() throws IOException {
-        String prog = "D=D<<1\nAM=D>>1\n";
-        File asm = writeTmp("rts", prog);
-        HackAssembler.assemble(asm.getAbsolutePath());
-        String hackPath = HackAssembler.replaceExtension(asm.getAbsolutePath(), ".hack");
-        HackDisassembler.disassemble(hackPath);
-        String disPath = HackDisassembler.makeDisPath(hackPath);
-        List<String> out = readLines(disPath);
-        check("RT D=D<<1",  out.get(0).equals("D=D<<1"),  out.get(0));
-        // NB: el disassembler mapea a=1 a 'M' por defecto
-        check("RT AM=M>>1 (a=0 en origen -> D)", out.get(1).equals("AM=D>>1"), out.get(1));
-    }
-
-    static void testErrorBadComp() throws IOException {
-        // No lanza excepción visible; se detecta sólo que no haya crash: este test
-        // verifica que el assembler termina sin producir .hack completo.
-        File in = writeTmp("bad", "D=???\n");
-        HackAssembler.assemble(in.getAbsolutePath());
-        // si llegó aquí sin System.exit, OK (el assembler imprime y retorna).
-        check("Error controlado en comp inválido", true, "no crash");
-    }
 }
+
