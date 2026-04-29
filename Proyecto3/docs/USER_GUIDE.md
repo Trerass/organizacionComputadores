@@ -1,110 +1,160 @@
-# USER GUIDE — HackAssembler
+# USER GUIDE - HackAssembler
+
+Esta guia asume que los comandos se ejecutan desde la carpeta raiz:
+
+```powershell
+C:\Users\JERONIMO\OrgComp2>
+```
+
+Si estas en otra carpeta, primero ejecuta:
+
+```powershell
+cd C:\Users\JERONIMO\OrgComp2
+```
 
 ## 1. Requisitos
 
-- JDK 11 o superior (probado con 11, 17 y 21).
-- No requiere librerías externas.
+- JDK 11 o superior.
+- No requiere librerias externas.
 
-## 2. Compilación
+Para verificar que Java y `javac` esten instalados:
 
-### Con javac directo
-```bash
-mkdir -p out
-javac -d out Proyecto3/src/HackAssembler.java Proyecto3/src/HackDisassembler.java
+```powershell
+java -version
+javac -version
 ```
 
-### Con Maven (opcional)
-Un `pom.xml` mínimo:
-```xml
-<project>
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>eafit.oc</groupId>
-  <artifactId>hack-assembler</artifactId>
-  <version>1.0</version>
-  <build>
-    <sourceDirectory>src</sourceDirectory>
-    <testSourceDirectory>test</testSourceDirectory>
-  </build>
-</project>
-```
-Luego `mvn compile`.
+## 2. Compilar el proyecto
 
-## 3. Ensamblar un `.asm`
+Desde `C:\Users\JERONIMO\OrgComp2`:
 
-```bash
-java -cp out HackAssembler Suma.asm
-# produce Suma.hack en el mismo directorio
+```powershell
+javac -d out Proyecto3\src\HackAssembler.java Proyecto3\src\HackDisassembler.java
 ```
 
-### Entrada `Suma.asm`
-```
-// RAM[2] = RAM[0] + RAM[1]
-@0
-D=M
-@1
-D=D+M
-@2
-M=D
-```
+Esto crea o actualiza la carpeta `out` con los archivos `.class`.
 
-### Salida `Suma.hack`
-```
-0000000000000000
-1111110000010000
-0000000000000001
-1111000010010000
-0000000000000010
-1110001100001000
+## 3. Ensamblar archivos `.asm`
+
+Los casos de prueba estan en:
+
+```text
+Proyecto3\test_cases
 ```
 
-## 4. Ensamblar con shifts
+Por eso, al ejecutar el ensamblador debes pasar la ruta completa del archivo `.asm`.
 
-```
-// R2 = R0 << 1
-@0
-D=M
-D=D<<1
-@2
-M=D
+### Ensamblar `Suma.asm`
+
+```powershell
+java -cp out HackAssembler Proyecto3\test_cases\Suma.asm
 ```
 
-## 5. Desensamblar un `.hack`
+Genera:
 
-```bash
-java -cp out HackAssembler -d Suma.hack
-# produce SumaDis.asm
+```text
+Proyecto3\test_cases\Suma.hack
 ```
 
-El desensamblador **no recupera** nombres simbólicos ni etiquetas (esa
-información se pierde durante el ensamblado), sólo direcciones numéricas.
+Para ver el resultado:
 
-## 6. Ejecutar los tests
-
-```bash
-javac -d out test/HackAssemblerTest.java
-java  -cp out HackAssemblerTest
+```powershell
+Get-Content Proyecto3\test_cases\Suma.hack
 ```
-Salida esperada (resumen): `Pasaron: N   Fallaron: 0`.
 
-## 7. Mensajes de error
+### Ensamblar otros casos
+
+```powershell
+java -cp out HackAssembler Proyecto3\test_cases\Contador.asm
+java -cp out HackAssembler Proyecto3\test_cases\DivPor2.asm
+java -cp out HackAssembler Proyecto3\test_cases\MulPor4.asm
+java -cp out HackAssembler Proyecto3\test_cases\ShiftMixto.asm
+```
+
+Cada comando genera un `.hack` con el mismo nombre en `Proyecto3\test_cases`.
+
+## 4. Desensamblar archivos `.hack`
+
+Para desensamblar se usa el mismo programa, pero agregando la opcion `-d`.
+
+### Desensamblar `Suma.hack`
+
+```powershell
+java -cp out HackAssembler -d Proyecto3\test_cases\Suma.hack
+```
+
+Genera:
+
+```text
+Proyecto3\test_cases\SumaDis.asm
+```
+
+Para ver el resultado:
+
+```powershell
+Get-Content Proyecto3\test_cases\SumaDis.asm
+```
+
+### Desensamblar otros casos
+
+```powershell
+java -cp out HackAssembler -d Proyecto3\test_cases\Contador.hack
+java -cp out HackAssembler -d Proyecto3\test_cases\DivPor2.hack
+java -cp out HackAssembler -d Proyecto3\test_cases\MulPor4.hack
+java -cp out HackAssembler -d Proyecto3\test_cases\ShiftMixto.hack
+```
+
+Cada comando genera un archivo terminado en `Dis.asm`, por ejemplo:
+
+```text
+MulPor4Dis.asm
+ShiftMixtoDis.asm
+```
+
+El desensamblador no recupera nombres simbolicos ni etiquetas, porque esa informacion se pierde al ensamblar. Por eso puede mostrar direcciones numericas.
+
+## 5. Ejecutar pruebas
+
+Primero compila el codigo fuente y el archivo de pruebas:
+
+```powershell
+javac -d out Proyecto3\src\HackAssembler.java Proyecto3\src\HackDisassembler.java Proyecto3\test\HackAssemblerTest.java
+```
+
+Luego ejecuta las pruebas:
+
+```powershell
+java -cp out HackAssemblerTest
+```
+
+La salida esperada termina con algo parecido a:
+
+```text
+Pasaron: N   Fallaron: 0
+```
+
+## 6. Flujo completo recomendado
+
+Ejemplo completo con `Suma.asm`:
+
+```powershell
+cd C:\Users\JERONIMO\OrgComp2
+javac -d out Proyecto3\src\HackAssembler.java Proyecto3\src\HackDisassembler.java
+java -cp out HackAssembler Proyecto3\test_cases\Suma.asm
+Get-Content Proyecto3\test_cases\Suma.hack
+java -cp out HackAssembler -d Proyecto3\test_cases\Suma.hack
+Get-Content Proyecto3\test_cases\SumaDis.asm
+```
+
+## 7. Mensajes de error comunes
 
 | Mensaje | Causa |
 |---|---|
-| `Etiqueta inválida: …` | `(XYZ)` contiene caracteres no permitidos. |
-| `Etiqueta duplicada: X` | La misma etiqueta aparece dos veces. |
-| `Destino inválido: 'XYZ'` | `XYZ=` no está en `{M,D,MD,A,AM,AD,AMD}`. |
-| `Salto inválido: 'XYZ'` | `;XYZ` no está en `{JGT,JEQ,JGE,JLT,JNE,JLE,JMP}`. |
-| `Expresión comp desconocida: 'XYZ'` | La parte derecha de `=` no coincide con ningún comp ni con un shift. |
-| `Operando de shift inválido: 'X'` | `X<<1` o `X>>1` con X distinto de `D`, `A` o `M`. |
-| `Constante fuera de rango` | `@n` con `n < 0` o `n > 32767`. |
-
-Al detectar un error, el programa imprime la línea fuente afectada y cierra
-el archivo de salida sin borrar lo ya escrito.
-
-## 8. Flujo completo recomendado
-
-1. Escribir `Prog.asm` con instrucciones Hack + shifts.
-2. `java HackAssembler Prog.asm` → `Prog.hack`.
-3. Cargar `Prog.hack` en `Computer.hdl` (proyecto 2) y ejecutar.
-4. (Opcional) `java HackAssembler -d Prog.hack` para inspeccionar la
-   decodificación.
+| `El sistema no puede encontrar el archivo especificado` | La ruta del archivo `.asm` o `.hack` no existe desde la carpeta actual. Usa rutas como `Proyecto3\test_cases\Suma.asm`. |
+| `Etiqueta invalida` | Una etiqueta contiene caracteres no permitidos. |
+| `Etiqueta duplicada` | La misma etiqueta aparece mas de una vez. |
+| `Destino invalido` | La parte izquierda de `=` no es valida. |
+| `Salto invalido` | La parte despues de `;` no es un salto valido. |
+| `Expresion comp desconocida` | La parte de computo no coincide con una instruccion Hack valida. |
+| `Operando de shift invalido` | El shift usa un operando distinto de `D`, `A` o `M`. |
+| `Constante fuera de rango` | Se uso `@n` con `n < 0` o `n > 32767`. |

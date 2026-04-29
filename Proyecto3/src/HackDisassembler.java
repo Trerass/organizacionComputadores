@@ -7,8 +7,8 @@
  *                         Uso:
  *                           java HackAssembler -d Prog.hack   -> ProgDis.asm
  *
- * Autor 1:
- * Autor 2:
+ * Autor 1: Cristian Bolaños
+ * Autor 2: Jeronimo Contreras
  *********/
 
 import java.io.BufferedReader;

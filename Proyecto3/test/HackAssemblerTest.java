@@ -7,8 +7,8 @@
  *                            javac -d out src/*.java test/HackAssemblerTest.java
  *                            java  -cp out HackAssemblerTest
  *
- * Autor 1:
- * Autor 2:
+ * Autor 1: Cristian Bolaños
+ * Autor 2: Jeronimo Contreras
  *********/
 
 import java.io.BufferedReader;
@@ -48,6 +48,7 @@ public class HackAssemblerTest {
     }
 
     static File writeTmp(String name, String content) throws IOException {
+        while (name.length() < 3) name = name + "_";
         File f = File.createTempFile(name, "");
         BufferedWriter w = new BufferedWriter(new FileWriter(f));
         w.write(content);
